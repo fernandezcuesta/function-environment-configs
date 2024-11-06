@@ -41,21 +41,6 @@ func ApplyEnvironmentPatch(p *EnvironmentPatch, env *unstructured.Unstructured, 
 		return pt.ApplyFromFieldPathPatch(p, oxr, env)
 	case v1beta1.PatchTypeCombineFromComposite:
 		return pt.ApplyCombineFromVariablesPatch(p, oxr, env)
-
-	// From environment to desired XR.
-	case v1beta1.PatchTypeToCompositeFieldPath,
-		v1beta1.PatchTypeFromEnvironmentFieldPath:
-		return pt.ApplyFromFieldPathPatch(p, env, dxr)
-	case v1beta1.PatchTypeCombineToComposite:
-		return pt.ApplyCombineFromVariablesPatch(p, env, dxr)
-
-	// Invalid patch types in this context.
-	case v1beta1.PatchTypeCombineFromEnvironment,
-		v1beta1.PatchTypeCombineToEnvironment:
-		// Nothing to do.
-
-	case v1beta1.PatchTypePatchSet:
-		// Already resolved - nothing to do.
 	}
 	return nil
 }
