@@ -20,8 +20,9 @@ import (
 	fnv1beta1 "github.com/crossplane/function-sdk-go/proto/v1beta1"
 	"github.com/crossplane/function-sdk-go/request"
 	"github.com/crossplane/function-sdk-go/response"
+	ptv1beta1 "github.com/fernandezcuesta/function-patch-and-transform/input/v1beta1"
 
-	"github.com/crossplane-contrib/function-environment-configs/input/v1beta1"
+	"github.com/fernandezcuesta/function-environment-configs/input/v1beta1"
 )
 
 const (
@@ -116,17 +117,23 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 		mergedData = mergeMaps(defaultData, mergedData)
 	}
 
-	if in.Spec.DataOverrides != nil {
-		xr := req.Observed.Composite.Resource.AsMap()
-		for k, v := range in.Spec.DataOverrides {
-			if val, err := fieldpath.Pave(xr).GetValue(v); err == nil {
-				mergedData[k] = val
+	// build output environment and patch it prior to returning it in the response as context
+	out := &unstructured.Unstructured{Object: mergedData}
+
+	for i := range in.Spec.Patches {
+		p := &in.Spec.Patches[i]
+		if err := v1beta1.ApplyEnvironmentPatch(p, out, oxr.Resource, nil); err != nil {
+
+			// Ignore not found errors if patch policy is set to Optional
+			if fieldpath.IsNotFound(err) && p.GetPolicy().GetFromFieldPathPolicy() == ptv1beta1.FromFieldPathPolicyOptional {
+				continue
 			}
+
+			response.Fatal(rsp, errors.Wrapf(err, "cannot apply the %q environment patch at index %d", p.GetType(), i))
+			return rsp, nil
 		}
 	}
 
-	// build environment and return it in the response as context
-	out := &unstructured.Unstructured{Object: mergedData}
 	if out.GroupVersionKind().Empty() {
 		out.SetGroupVersionKind(schema.GroupVersionKind{Group: "internal.crossplane.io", Kind: "Environment", Version: "v1alpha1"})
 	}

@@ -636,9 +636,13 @@ func TestRunFunction(t *testing.T) {
 									}
 								}
 							],
-							"dataOverrides": {
-								"g": "spec.parameters.override-g"
-							}
+							"patches": [
+								{
+									"type": "FromCompositeFieldPath",
+									"fromFieldPath": "spec.parameters.override-g",
+									"toFieldPath": "g"
+								}
+							]
 						}
 					}`),
 					ExtraResources: map[string]*fnv1beta1.Resources{
@@ -777,10 +781,18 @@ func TestRunFunction(t *testing.T) {
 									}
 								}
 							],
-							"dataOverrides": {
-								"g": "not.in.spec.parameters.override-g",
-								"h": "spec.parameters.override-h"
-							}
+							"patches": [
+								{
+									"type": "FromCompositeFieldPath",
+									"fromFieldPath": "spec.not.in.spec.parameters.override-g",
+									"toFieldPath": "g"
+								},
+								{
+									"type": "FromCompositeFieldPath",
+									"fromFieldPath": "spec.parameters.override-h",
+									"toFieldPath": "h"
+								}
+							]
 						}
 					}`),
 					ExtraResources: map[string]*fnv1beta1.Resources{

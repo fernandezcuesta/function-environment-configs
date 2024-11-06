@@ -17,9 +17,8 @@ limitations under the License.
 */
 
 import (
-	extv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-
 	xpv1 "github.com/crossplane/crossplane-runtime/apis/common/v1"
+	extv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 )
 
 // An InputSpec specifies the environment for rendering composed
@@ -49,11 +48,10 @@ type InputSpec struct {
 	// EnvironmentSourceReferences in EnvironmentConfigs list.
 	// +optional
 	Policy *Policy `json:"policy,omitempty"`
-
-	// DataOverrides allows overriding the resulting environment data with
-	// static values. The keys are field paths in the environment data, and the
-	// values are references to where the data should be taken from (e.g. "spec.parameters.foo")
-	DataOverrides map[string]string `json:"dataOverrides,omitempty"`
+	// Patches is a list of environment patches that are executed once the
+	// input's defaultData and environmentConfigs are merged together.
+	// These patches are from the XR to the Environment only.
+	Patches []EnvironmentPatch `json:"patches,omitempty"`
 }
 
 // Policy represents the Resolution policy of Reference instance.
